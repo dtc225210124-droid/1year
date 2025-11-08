@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Hành Trình 1 Năm Yêu Nhau</title>
+  <style>
+    :root{
+      --bg1: #0f1020;
+      --card: rgba(255,255,255,0.06);
+      --accent: #ff6b9a;
+      --muted: rgba(255,255,255,0.7);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;color:#fff;background:linear-gradient(180deg,var(--bg1) 0%, #1b1330 100%);}
+    .wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;gap:28px;padding:36px}
+    header{width:100%;max-width:1100px;display:flex;align-items:center;justify-content:space-between}
+    .title{display:flex;gap:16px;align-items:center}
+    .logo{width:68px;height:68px;border-radius:14px;background:linear-gradient(135deg,var(--accent),#ffd1dc);display:flex;align-items:center;justify-content:center;font-weight:700;color:#2b0330}
+    h1{margin:0;font-size:20px}
+    p.lead{margin:0;color:var(--muted);font-size:13px}
+
+    .timeline{width:100%;max-width:1100px;background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);border-radius:12px;padding:22px;display:grid;grid-template-columns:1fr 380px;gap:20px}
+    .months{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    .month{background:var(--card);padding:14px;border-radius:10px;min-height:96px;position:relative;cursor:pointer;transition:transform .25s ease, box-shadow .25s ease}
+    .month:hover{transform:translateY(-6px);box-shadow:0 8px 30px rgba(0,0,0,0.45)}
+    .month .num{font-size:20px;font-weight:700}
+    .month .name{font-size:12px;color:var(--muted);margin-top:6px}
+    .heart-small{position:absolute;right:10px;top:10px;width:28px;height:28px}
+
+    .detail{background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));padding:18px;border-radius:10px;min-height:360px;position:relative}
+    .detail h2{margin:0 0 8px 0}
+    .detail .date{color:var(--muted);font-size:13px;margin-bottom:12px}
+    .detail .note{color:var(--muted);line-height:1.5}
+    .detail img{width:100%;border-radius:10px;margin-top:10px;display:none}
+
+    .controls{display:flex;gap:8px;align-items:center}
+    button.control{background:transparent;border:1px solid rgba(255,255,255,0.08);padding:8px 12px;border-radius:8px;color:var(--muted);cursor:pointer}
+
+    #fx{position:fixed;pointer-events:none;z-index:5;left:0;top:0;width:100%;height:100%}
+    @media (max-width:900px){.timeline{grid-template-columns:1fr;}.months{grid-template-columns:repeat(2,1fr)}.detail{order:2}}
+    @media (max-width:520px){.months{grid-template-columns:1fr}.logo{width:52px;height:52px}}
+
+    .sparkle{position:absolute;inset:0;pointer-events:none}
+    .sparkle::after{content:'';position:absolute;left:20%;top:10%;width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.12);box-shadow:0 0 26px 6px rgba(255,107,154,0.08);transform:scale(.6);animation:blink 2.6s infinite}
+    @keyframes blink{0%,100%{opacity:.2}50%{opacity:1;transform:scale(1.2)}}
+    footer{width:100%;max-width:1100px;color:var(--muted);font-size:13px;text-align:center;padding:6px}
+  </style>
+</head>
+<body>
+  <canvas id="fx"></canvas>
+  <div class="wrap">
+    <header>
+      <div class="title">
+        <div class="logo">1Y</div>
+        <div>
+          <h1>Hành Trình 1 Năm Yêu Nhau</h1>
+          <p class="lead">Chẳng cần hứa hẹn điều gì, chỉ cần mỗi ngày vẫn chọn ở lại bên nhau</p>
+        </div>
+      </div>
+      <div class="controls">
+        <button class="control" id="addNoteBtn">+ Thêm ghi chú</button>
+        <button class="control" id="playMusic">▶ Nhạc</button>
+      </div>
+    </header>
+
+    <section class="timeline">
+      <div class="months" id="months"></div>
+      <aside class="detail" id="detail">
+        <h2>Chọn tháng để xem kỷ niệm</h2>
+        <div class="date">—</div>
+        <div class="note">Không có ghi chú.</div>
+        <img id="monthImage" src="" alt="Kỷ niệm" />
+        <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+          <button class="control" id="editBtn">Chỉnh sửa</button>
+          <button class="control" id="celebrateBtn">Kỷ niệm!</button>
+        </div>
+      </aside>
+    </section>
+
+    <div class="sparkle"></div>
+    <footer>Hạnh phúc không có tiêu chuẩn, chỉ cần cười nhiều hơn khóc...</footer>
+  </div>
+
+  <template id="monthTemplate">
+    <div class="month">
+      <div class="num"></div>
+      <div class="name"></div>
+      <svg class="heart-small" viewBox="0 0 24 24"><path d="M12 20s-7-4.35-9.2-7.08C-0.01 9.9 3.6 5 8.5 6.5 10.6 7.2 12 9 12 9s1.4-1.8 3.5-2.5C20.4 5 24.01 9.9 21.2 12.92 19 15.65 12 20 12 20z" fill="url(#g)"/><defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="#ff6b9a"/><stop offset="1" stop-color="#ffd1dc"/></linearGradient></defs></svg>
+    </div>
+  </template>
+
+  <script>
+    // Ghi chú mặc định
+    const defaultNotes = [
+      'dịp này đi chụp ảnh tết nè rủ nhau 2h đi chụp ấy thế mà 4h hơn mới có mặt chỗ chụp, chụp được một lúc trời đã nhá nhem tối. nhưng mà không sao chúng mình vẫn có những tấm ảnh đẹp, nhiều người còn tưởng chúng mình chụp ảnh cưới cơ hihi',
+      'Hẹn hò: đi chơi cùng nhau, cùng nhau tận hưởng nốt cái giá lạnh của mùa đông',
+      'Này là vừa tết ra có những chuyến du xuân cùng nhau thăm bảo tàng quân sự nhiều di tích lịch sử hoành táng nhưng rộng quá đi mỏi hết cả chân',
+      'Hôm này sinh nhật tui nè! cùng nhau đi ăn đi chơi người ấy tạo cho tôi nhiều sự bất ngờ',
+      'về quê tui chơi đi dạo tắm biển tận hưởng mùi gió biển ',
+      'khúc này được nghỉ hè và chuẩn bị đi làm nguyên 1 tháng',
+      'Chúng mình đi du lịt Hà Nội trải nghiệm cảm giác tắm bồn :)). Người ở đây rất nhộn nhịp cảnh cũng rất đẹp để đi chơi thì ok',
+      'Tháng 8 là tháng bận rộn của mình ngoài đi học thời gian còn lại là đi làm ít dành thời gian và đi chơi cùng nhau',
+      'Sinh nhật cô công chúa nhỏ của tôi <3',
+      '20/10 và những bông hoa xinh đẹp nhất!',
+      'Chung tay hoàn thành một dự án nhỏ.',
+      'những ngày tháng đầu mới yêu nhau chúng mình thật sự chìm đắm trong tình yêu, +1 chuyến đi tam đảo là một trải nghiệm thú vị với cái thời thiết se se lạnh chúng mình gắn kết nhau lại tạo nên tình yêu thật ấm áp'
+    ];
+
+    // Ảnh mặc định cho từng tháng
+    const defaultImages = {
+      0: 'IU1.jpg',
+      1: 'feb.jpg',
+      2: 'mar.jpg',
+      3: 'apr.jpg',
+      4: 'may.jpg',
+      5: 'jun.jpg',
+      6: 'jul.jpg',
+      7: 'aug.jpg',
+      8: 'sep.jpg',
+      9: 'oct.jpg',
+      10: 'nov.jpg',
+      11: 'IU.jpg'
+    };
+
+    // Dữ liệu ghi chú
+    const savedNotes = JSON.parse(localStorage.getItem('journey-notes')||'null');
+    const notes = savedNotes && Array.isArray(savedNotes) ? savedNotes : defaultNotes.slice();
+
+    const monthsEl = document.getElementById('months');
+    const tpl = document.getElementById('monthTemplate');
+    const detail = document.getElementById('detail');
+    const monthImg = document.getElementById('monthImage');
+    let active = null;
+    const monthOrder = [11,0,1,2,3,4,5,6,7,8,9,10];
+
+    // Hiển thị danh sách tháng
+    function renderMonths(){
+      monthsEl.innerHTML = '';
+      for(let idx = 0; idx < 12; idx++){
+        const i = monthOrder[idx];
+        const clone = tpl.content.cloneNode(true);
+        const el = clone.querySelector('.month');
+        clone.querySelector('.num').textContent = (idx + 1) + (i === 11 ? ' ' : '');
+        clone.querySelector('.name').textContent = new Date(2020,i).toLocaleString('vi',{month:'long'});
+        el.addEventListener('click',()=>selectMonth(i));
+        monthsEl.appendChild(clone);
+      }
+    }
+
+    // Hiển thị chi tiết tháng
+    function selectMonth(i){
+      active = i;
+      detail.querySelector('h2').textContent = `Tháng ${i+1} — ` + new Date(2020,i).toLocaleString('vi',{month:'long'});
+      detail.querySelector('.date').textContent = (i === 11) ? 'Ngày: 03/12/2024' : '';
+      detail.querySelector('.note').textContent = notes[i] || 'Không có ghi chú.';
+
+      const imgSrc = defaultImages[i];
+      if(imgSrc){
+        monthImg.src = imgSrc;
+        monthImg.style.display = 'block';
+      } else {
+        monthImg.style.display = 'none';
+      }
+    }
+
+    // Sửa ghi chú
+    document.getElementById('editBtn').addEventListener('click',()=>{
+      if(active===null) return alert('Chọn tháng trước.');
+      const t = prompt('Chỉnh sửa ghi chú cho tháng '+(active+1), notes[active]);
+      if(t!==null){ notes[active]=t; localStorage.setItem('journey-notes',JSON.stringify(notes)); selectMonth(active); }
+    });
+
+    // Thêm ghi chú
+    document.getElementById('addNoteBtn').addEventListener('click',()=>{
+      const m=parseInt(prompt('Thêm ghi chú cho tháng (1-12)'),10)-1;
+      if(isNaN(m)||m<0||m>11) return alert('Số tháng không hợp lệ');
+      const t=prompt('Ghi chú cho tháng '+(m+1));
+      if(t){ notes[m]=t; localStorage.setItem('journey-notes',JSON.stringify(notes)); if(active===m) selectMonth(m); renderMonths(); }
+    });
+
+    // Pháo hoa
+    document.getElementById('celebrateBtn').addEventListener('click',()=>{
+      if(active===null){alert('Chọn một tháng trước.');return;}
+      launchFireworks(); burstHearts();
+    });
+
+    // --- fireworks ---
+    const canvas=document.getElementById('fx'),ctx=canvas.getContext('2d');
+    resize();window.addEventListener('resize',resize);
+    function resize(){canvas.width=innerWidth;canvas.height=innerHeight;}
+    let particles=[];
+    function launchFireworks(){
+      const cx=Math.random()*canvas.width,cy=Math.random()*canvas.height*0.4+canvas.height*0.1;
+      for(let i=0;i<120;i++){
+        const angle=Math.random()*Math.PI*2,speed=Math.random()*6+2;
+        const vx=Math.cos(angle)*speed,vy=Math.sin(angle)*speed,life=Math.random()*60+50,hue=Math.floor(Math.random()*360);
+        particles.push({x:cx,y:cy,vx,vy,life,age:0,hue});
+      }
+    }
+    function burstHearts(){
+      const cx=innerWidth/2,cy=innerHeight/2;
+      for(let i=0;i<24;i++){
+        const ang=(i/24)*Math.PI*2+(Math.random()-0.5)*0.6,speed=Math.random()*3+1.5;
+        particles.push({x:cx,y:cy,vx:Math.cos(ang)*speed,vy:Math.sin(ang)*speed-1.2,life:100,age:0,hue:320,heart:true,scale:Math.random()*0.8+0.5});
+      }
+    }
+    function step(){
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      for(let i=particles.length-1;i>=0;i--){
+        const p=particles[i];p.age++;p.vy+=0.02;p.x+=p.vx;p.y+=p.vy;
+        const alpha=Math.max(0,1-p.age/p.life);
+        if(p.heart){drawHeart(ctx,p.x,p.y,p.scale,p.hue,alpha);}
+        else{ctx.beginPath();ctx.fillStyle=`hsla(${p.hue},100%,60%,${alpha})`;ctx.arc(p.x,p.y,2.4,0,Math.PI*2);ctx.fill();}
+        if(p.age>p.life) particles.splice(i,1);
+      }
+      requestAnimationFrame(step);
+    }step();
+    function drawHeart(ctx,x,y,s,hue,alpha){
+      ctx.save();ctx.translate(x,y);ctx.scale(s,s);
+      ctx.beginPath();ctx.moveTo(0,0);
+      ctx.bezierCurveTo(0,-6,-10,-24,-36,-24);
+      ctx.bezierCurveTo(-80,-24,-80,36,-80,36);
+      ctx.bezierCurveTo(-80,76,-40,110,0,140);
+      ctx.bezierCurveTo(40,110,80,76,80,36);
+      ctx.bezierCurveTo(80,36,80,-24,36,-24);
+      ctx.bezierCurveTo(10,-24,0,-6,0,0);
+      ctx.closePath();
+      const g=ctx.createLinearGradient(-80,-24,80,140);
+      g.addColorStop(0,`hsla(${hue},100%,70%,${alpha})`);
+      g.addColorStop(1,`hsla(${hue+30},100%,60%,${alpha})`);
+      ctx.fillStyle=g;ctx.fill();ctx.restore();
+    }
+
+    renderMonths();
+    selectMonth(11);
+  </script>
+
+  <audio id="bgMusic" loop>
+    <source src="Yêu Em Hơn Mỗi Ngày.mp3" type="audio/mpeg">
+  </audio>
+  <script>
+    const playBtn=document.getElementById('playMusic');
+    const bgMusic=document.getElementById('bgMusic');
+    playBtn.addEventListener('click',()=>{
+      if(bgMusic.paused){bgMusic.play();playBtn.textContent='⏸ Dừng nhạc';}
+      else{bgMusic.pause();playBtn.textContent='▶ Nhạc';}
+    });
+  </script>
+</body>
+</html>
